@@ -64,32 +64,38 @@ def filter_by_distance(cloud, distance=10):
 # TODO: implementation function to perform Euclidean clustering at a specified threshold in meters
 def euclidean_clustering(cloud, threshold=0.5):
     cluster_labels = np.zeros(len(cloud), dtype=int)
+    
     clusterID = 0
     queue = Queue()
     for i in range(len(cloud)):
         if cluster_labels[i] != 0: #checks to see if something already has a label/isn't background
             break        
         queue.put(cloud[i])
-        cluster_labels = np.append(cluster_labels, clusterID)
-        while (queue.qsize() != 0):
+        cluster_labels[i] == clusterID
+        while (queue.empty() == False):
             point = queue.get()
+            #search for neighbors of point
             neighbors = []
-            #create list of neighbors with euclidian distance
             for j in range(len(cloud)):
-                if (np.linalg.norm(point - cloud[j]) < threshold):
-                    neighbors.append(cloud[j]) 
-            for j in range(len(neighbors)):
-                #search for location of neighbor in main array
-                location = np.where(cloud==neighbors[j]) #breaking here
-                #see if that neighbor has a cluster label
-                if ((cluster_labels[location[0]] == 0).any()):
-                    queue.put(neighbors[j])
-                    cluster_labels = np.append(cluster_labels, clusterID)
-                #print(queue.qsize())
-        print("Exiting the queue, starting on the next point")
-        queue = deque()
-        clusterID += 1 #increment up to the next ID
-    print("is it finsihing this function?\n")    
+                if (i != j): #checking to make sure that its not the same point
+                    dist = np.linalg.norm(point - cloud[j])
+                    if (dist <= threshold):
+                        neighbors.append(j) #neighbors will only hold the location of the data, not the location itself
+            for n in range(len(neighbors)):
+                #if current neighbor has no label
+                if (cluster_labels[neighbors[n]] == 0):
+                    #add to the queue
+                    queue.put(cloud[neighbors[n]])
+                    #give it a label
+                    cluster_labels[neighbors[n]] == clusterID
+            neighbors.clear()
+            print(queue.qsize())
+        print("exiting the queue")
+        #empty the queue
+        queue = Queue()
+        #increment the counter up one
+        clusterID += 1
+    
     return cluster_labels
 
 # TODO: (extra credit) implementation function to perform Euclidean clustering with lower computation time
@@ -139,7 +145,6 @@ def point_cloud_callback(msg):
 
     # Determine cluster labels
     cluster_labels = euclidean_clustering(filtered_cloud[:, :3])
-    print("is it even making it here?\n")
 
     # Filter out clusters that are too small
     cluster_labels = filter_clusters(cluster_labels, 100)
