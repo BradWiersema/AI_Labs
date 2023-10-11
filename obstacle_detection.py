@@ -61,6 +61,9 @@ def filter_ground(cloud, ground_level=0):
 def filter_by_distance(cloud, distance=10):
     return cloud[((cloud[:,0] < distance) & (cloud[:,1] < distance))]
 
+def distance(cloud):
+    return np.linalg.norm(cloud)
+
 # TODO: implementation function to perform Euclidean clustering at a specified threshold in meters
 def euclidean_clustering(cloud, threshold=0.5):
     cluster_labels = np.zeros(len(cloud), dtype=int)
@@ -75,13 +78,18 @@ def euclidean_clustering(cloud, threshold=0.5):
             point = queue.get()
             #search for neighbors of point
             neighbors = []
-            for j in range(len(cloud)):
+            dist = np.sqrt(np.sum((cloud - cloud[i])**2, axis=1))
+            for j in range(len(dist)):
+                if (dist[j] <= threshold):
+                        if (cluster_labels[j] == 0):
+                            neighbors.append(j)
+            """for j in range(len(cloud)):
                 if (i != j): #checking to make sure that its not the same point
                     dist = np.linalg.norm(point - cloud[j])
                     if (dist <= threshold):
                         if (cluster_labels[j] == 0):
-                            neighbors.append(j) #neighbors will only hold the location of the data, not the data itself
-                            
+                            neighbors.append(j) #neighbors will only hold the location of the data, not the data itself            
+            """
             for n in range(len(neighbors)):
                 #if current neighbor has no label
                 if (cluster_labels[neighbors[n]] == 0):
@@ -90,12 +98,12 @@ def euclidean_clustering(cloud, threshold=0.5):
                     #give it a label
                     cluster_labels[neighbors[n]] = clusterID
             neighbors.clear()
-            print(queue.qsize())
-        print("exiting the queue")
+            #print(queue.qsize())
         #empty the queue
         queue = Queue()
         #increment the counter up one
         clusterID += 1
+        print(clusterID)
     
     return cluster_labels
 
