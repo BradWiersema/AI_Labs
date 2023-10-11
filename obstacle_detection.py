@@ -64,14 +64,13 @@ def filter_by_distance(cloud, distance=10):
 # TODO: implementation function to perform Euclidean clustering at a specified threshold in meters
 def euclidean_clustering(cloud, threshold=0.5):
     cluster_labels = np.zeros(len(cloud), dtype=int)
-    
-    clusterID = 0
+    clusterID = 1
     queue = Queue()
     for i in range(len(cloud)):
         if cluster_labels[i] != 0: #checks to see if something already has a label/isn't background
-            break        
+            continue       
         queue.put(cloud[i])
-        cluster_labels[i] == clusterID
+        cluster_labels[i] = clusterID
         while (queue.empty() == False):
             point = queue.get()
             #search for neighbors of point
@@ -80,14 +79,16 @@ def euclidean_clustering(cloud, threshold=0.5):
                 if (i != j): #checking to make sure that its not the same point
                     dist = np.linalg.norm(point - cloud[j])
                     if (dist <= threshold):
-                        neighbors.append(j) #neighbors will only hold the location of the data, not the location itself
+                        if (cluster_labels[j] == 0):
+                            neighbors.append(j) #neighbors will only hold the location of the data, not the data itself
+                            
             for n in range(len(neighbors)):
                 #if current neighbor has no label
                 if (cluster_labels[neighbors[n]] == 0):
                     #add to the queue
                     queue.put(cloud[neighbors[n]])
                     #give it a label
-                    cluster_labels[neighbors[n]] == clusterID
+                    cluster_labels[neighbors[n]] = clusterID
             neighbors.clear()
             print(queue.qsize())
         print("exiting the queue")
