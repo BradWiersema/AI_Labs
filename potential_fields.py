@@ -211,6 +211,7 @@ def get_pf_magnitude_linear(distance):
     # PART C CODE HERE: 
     #   1. Compute the magnitude of the force for the given distance and return it
     if distance < distance_threshold:
+        #magnitude = distance * math.hypot(robot[0], robot[1])
         magnitude = (1 - distance / distance_threshold)
         if (magnitude > max_strength):
             return max_strength
