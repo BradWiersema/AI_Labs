@@ -75,13 +75,13 @@ def drive_from_force(force):
     #PARAMETERS : MODIFY TO GET ROBOT TO MOVE EFFECTIVELY
     
     #This is multiplied by the angle of the drive force to get the turn command 
-    turn_multiplier = 0.5
+    turn_multiplier = 1.0
     
     #If the absolute value of the angle of the force direction is greater than this, we only spin
-    spin_threshold = 2.25 #math.pi
+    spin_threshold = math.pi
     
     #This is multiplied by the magnitude of the force vector to get the drive forward command
-    drive_multiplier = 0.5
+    drive_multiplier = 1.0
     
     #END OF PARAMETERS
     #####################################################
@@ -102,6 +102,19 @@ def drive_from_force(force):
 
     return twist
 
+def near_goal():
+    if (((robot[0] > goal[0]-0.25) and (robot[1] > goal[1]-0.25)) and ((robot[0] < goal[0]+0.25) and (robot[1] < goal[1]+0.25))):
+        return True
+    elif (((robot[0] > goal[0]+0.25) and (robot[1] > goal[1]-0.25)) and ((robot[0] < goal[0]-0.25) and (robot[1] < goal[1]+0.25))):
+        return True
+    elif (((robot[0] > goal[0]-0.25) and (robot[1] > goal[1]+0.25)) and ((robot[0] < goal[0]+0.25) and (robot[1] < goal[1]-0.25))):
+        return True
+    elif (((robot[0] > goal[0]+0.25) and (robot[1] > goal[1]+0.25)) and ((robot[0] < goal[0]-0.25) and (robot[1] < goal[1]-0.25))):
+        return True
+    else:
+        return False
+        
+
 # This function determines and returns the attractive force (force_to_goal) to the goal.  
 # This force should be in robot coordinates
 def goal_force( ):
@@ -116,7 +129,7 @@ def goal_force( ):
     
     #Parameter : MODIFY
     #This should be used to scale the magnitude of the attractive goal force
-    strength = 0.65
+    strength = 1.25
     
     #END OF PARAMETERS
     #####################################################
@@ -137,6 +150,8 @@ def goal_force( ):
     angle_to_goal = target_angle - current_angle
     #force_to_goal = [strength * math.cos(angle_to_goal),strength * math.sin(angle_to_goal)]
     force_to_goal = [strength * math.cos(angle_to_goal), strength * math.sin(angle_to_goal)]
+    if (near_goal()):
+        force_to_goal = [0, 0]
     #########################
     # PART A : END
     #########################
@@ -176,10 +191,10 @@ def obstacle_force():
 
         # PART B CODE HERE: 
         #    1. Compute force vector with magnitude 'strength' away from obstacle
-        force_vector = [(strength * robot[0]), (strength * robot[1])]
+        force_vector = strength * -cur_angle
         #    2. Add this force vector to the 'force_from_obstacles' vector
-        force_from_obstacles[0] = force_from_obstacles[0] + force_vector[0]
-        force_from_obstacles[1] = force_from_obstacles[1] + force_vector[1]
+        force_from_obstacles[0] = force_from_obstacles[0] + force_vector
+        force_from_obstacles[1] = force_from_obstacles[1] + force_vector
         #########################
         # PART B : END
         #########################
@@ -196,7 +211,7 @@ def get_pf_magnitude_linear(distance):
     #PARAMETERS: MODIFY TO GET THINGS WORKING EFFECTIVELY
         
     #How close to the obstacle do we have to be to begin feeling repulsive force
-    distance_threshold = 1.00
+    distance_threshold = .9
 
     #The maximum strength of the repulsive force
     max_strength = 1.00
@@ -211,7 +226,6 @@ def get_pf_magnitude_linear(distance):
     # PART C CODE HERE: 
     #   1. Compute the magnitude of the force for the given distance and return it
     if distance < distance_threshold:
-        #magnitude = distance * math.hypot(robot[0], robot[1])
         magnitude = (1 - distance / distance_threshold)
         if (magnitude > max_strength):
             return max_strength
